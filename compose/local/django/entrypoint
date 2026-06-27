@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+# Do nothing in this entrypoint right now
+# For dev I don't think it does anything
+exec "$@"

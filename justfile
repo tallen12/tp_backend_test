@@ -24,6 +24,10 @@ down:
     @echo "Stopping containers..."
     @docker compose down
 
+# Get status of containers
+ps:
+    @docker compose ps
+
 # prune: Remove containers and their volumes.
 prune *args:
     @echo "Killing containers and removing volumes..."

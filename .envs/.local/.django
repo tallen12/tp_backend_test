@@ -16,3 +16,6 @@ CTGOV_API_BASE_URL=http://sample-api.trialport.com
 # Flower
 CELERY_FLOWER_USER=bKjzBASnJfOFTazvONMswwLYIZUZSNFn
 CELERY_FLOWER_PASSWORD=t4cmVhPyjh4RiEhvp0B7fQ9PAcRlS2yeHzlk3HyXlW0diFlsGikDpKQBYrM01tEC
+
+# Database
+DATABASE_URL=postgresql://kzSYtxYzeuAdmDEAbtkKDouspQYjtgsx:jnnaHN6xVuYY1pacSUILtTEtXUIS1MbUNnhhNSw9SWM0TJEhdCN65E2I7m0JzHzb@postgres:5432/tp_backend_test

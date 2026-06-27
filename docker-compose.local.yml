@@ -24,14 +24,24 @@ services:
       - '8000:8000'
     command: /start
 
+  # Old version missing docker file, resolve it later if needed
+  # postgres:
+  #   build:
+  #     context: .
+  #     dockerfile: ./compose/production/postgres/Dockerfile
+  #   image: tp_backend_test_production_postgres
+  #   container_name: tp_backend_test_local_postgres
+  #   volumes:
+  #     - tp_backend_test_local_postgres_data:/var/lib/postgresql/18/docker
+  #     - tp_backend_test_local_postgres_data_backups:/backups
+  #   env_file:
+  #     - ./.envs/.local/.postgres
+
   postgres:
-    build:
-      context: .
-      dockerfile: ./compose/production/postgres/Dockerfile
-    image: tp_backend_test_production_postgres
+    image: docker.io/library/postgres:18
     container_name: tp_backend_test_local_postgres
     volumes:
-      - tp_backend_test_local_postgres_data:/var/lib/postgresql/18/docker
+      - tp_backend_test_local_postgres_data:/var/lib/postgresql
       - tp_backend_test_local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres

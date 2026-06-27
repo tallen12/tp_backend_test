@@ -46,10 +46,17 @@ RUN groupadd --gid 1000 dev-user \
 ENV PATH="/${APP_HOME}/.venv/bin:$PATH"
 ENV PYTHONPATH="${APP_HOME}/.venv/lib/python3.14/site-packages:$PYTHONPATH"
 
-COPY ./compose/production/django/entrypoint /entrypoint
+# Does not look like this should go in this docker file
+# COPY ./compose/production/django/entrypoint /entrypoint
+# RUN sed -i 's/\r$//g' /entrypoint
+# RUN chmod +x /entrypoint
+
+# Don't know what entrypoint does, just make it empty
+COPY ./compose/local/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 
+# TODO: I think it makes more sense to do multistage builds
 COPY ./compose/local/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
