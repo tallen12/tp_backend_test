@@ -28,6 +28,9 @@ down:
 ps:
     @docker compose ps
 
+restart *args:
+    @docker compose restart {{args}}
+
 # prune: Remove containers and their volumes.
 prune *args:
     @echo "Killing containers and removing volumes..."

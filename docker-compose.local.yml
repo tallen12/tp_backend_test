@@ -40,6 +40,8 @@ services:
   postgres:
     image: docker.io/library/postgres:18
     container_name: tp_backend_test_local_postgres
+    ports:
+      - "5432:5432"
     volumes:
       - tp_backend_test_local_postgres_data:/var/lib/postgresql
       - tp_backend_test_local_postgres_data_backups:/backups
