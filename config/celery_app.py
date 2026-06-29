@@ -24,6 +24,5 @@ def config_loggers(*args, **kwargs):
     dictConfig(settings.LOGGING)
 
 
-app.conf.worker_autoscale = [10, 2]
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()

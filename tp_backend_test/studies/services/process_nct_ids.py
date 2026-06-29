@@ -1,11 +1,10 @@
+import logging
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Protocol
 from typing import cast
 
 import requests
-from celery import shared_task
-from django.conf import settings
 from requests import codes
 
 from tp_backend_test.studies.models import NctSearchTask
@@ -14,8 +13,9 @@ from tp_backend_test.studies.models import Study
 if TYPE_CHECKING:
     from collections.abc import MutableMapping
 
-    from celery.result import AsyncResult
     from rest_framework.compat import QuerySet
+
+LOGGER = logging.getLogger(__name__)
 
 
 class StudyFetcherError(Exception):
@@ -161,6 +161,7 @@ class ProcessNctIdService:
             raise
         except Exception:
             new_status = NctSearchTask.Status.FAILURE
+            LOGGER.exception("Unknown Error")
             raise
         finally:
             new_status = new_status or (
@@ -172,27 +173,3 @@ class ProcessNctIdService:
                 status=new_status,
                 study_id=existing.id if existing else None,
             )
-
-
-# Defining this as a static method on the class had issues
-@shared_task(
-    autoretry_for=(StudyFetcherError,),
-    max_retries=5,  # Stop after 5 attempts like in config
-    default_retry_delay=5,
-    retry_backoff=True,
-    retry_jitter=True,
-    bind=True,
-)
-def celery_task(self, nct_id: str):
-    ProcessNctIdService.factory(
-        settings.CTGOV_API_BASE_URL,
-        max_retries=5,
-    ).process_nct_id(
-        nct_id=nct_id,
-        retries=self.request.retries,
-    )
-
-
-class CeleryProcessNctIdService:
-    def schedule(self, nct_id: str) -> AsyncResult | None:
-        return celery_task.delay(nct_id)  # pyright: ignore[reportCallIssue]

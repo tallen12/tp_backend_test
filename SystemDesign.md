@@ -38,7 +38,9 @@ These async celery tasks will handle updating the Study Models as well as the se
 
 If a task fails with a 404 it will be marked as not found. A future lookup will retry it but the current Search.
 
-To determine when a file upload is complete each NctSearchTask will have a status determining if it is completed. A separate task is run periodically to correlate these and update the UploadTask status when all are in a complete state (ie. not processing.)
+There is logging but mostly the relevant information is surfaced in the celery tasks in flower or django admin (I didn't need to use when debugging).
+
+To determine when a file upload is complete each NctSearchTask will have a status determining if the search is completed. A separate task is run periodically to correlate these NctSearchTask statuses and update the UploadTask status when all are in a complete state (ie. not processing.)
 
 A rough overview is in the diagram below (subject to change during implementation):
 ![alt](./System%20Design.drawio.png)
