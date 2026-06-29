@@ -7,18 +7,16 @@ from django.db import transaction
 from tp_backend_test.studies.models import UploadTask
 from tp_backend_test.studies.services.csv_validator import NctIdCsvValidatorService
 from tp_backend_test.studies.services.file_hasher import FileHasherService
-from tp_backend_test.studies.services.process_file_upload import (
-    CeleryProcessFileUploadService,
-)
+from tp_backend_test.studies.tests.test_tasks import CeleryProcessFileUploadService
 
 if TYPE_CHECKING:
     import uuid
     from collections.abc import Callable
-    from typing import Self
 
     from celery.result import AsyncResult
     from django.core.files.uploadedfile import InMemoryUploadedFile
     from django.core.files.uploadedfile import TemporaryUploadedFile
+    from django.db.models import QuerySet
 
 
 # Custom errors used by this service
@@ -68,7 +66,7 @@ class ModelManagerProtocol(Protocol):
     """
 
     def create(self, **kwargs) -> UploadTask: ...
-    def filter(self, **kwargs) -> Self: ...
+    def filter(self, **kwargs) -> QuerySet[UploadTask]: ...
     def first(self) -> UploadTask | None: ...
 
 

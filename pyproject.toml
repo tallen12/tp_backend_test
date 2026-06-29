@@ -37,6 +37,7 @@ dependencies = [
   "psycopg[c]==3.3.4",
   "python-slugify==8.0.4",
   "redis==8.0.1",
+  "requests>=2.34.2",
   "whitenoise==6.12.0",
 ]
 

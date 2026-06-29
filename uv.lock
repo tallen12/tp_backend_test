@@ -2025,6 +2025,7 @@ dependencies = [
     { name = "psycopg", extra = ["c"] },
     { name = "python-slugify" },
     { name = "redis" },
+    { name = "requests" },
     { name = "whitenoise" },
 ]
 
@@ -2078,6 +2079,7 @@ requires-dist = [
     { name = "psycopg", extras = ["c"], specifier = "==3.3.4" },
     { name = "python-slugify", specifier = "==8.0.4" },
     { name = "redis", specifier = "==8.0.1" },
+    { name = "requests", specifier = ">=2.34.2" },
     { name = "whitenoise", specifier = "==6.12.0" },
 ]
 

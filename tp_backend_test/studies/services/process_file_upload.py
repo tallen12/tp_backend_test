@@ -4,8 +4,6 @@ import itertools
 from typing import TYPE_CHECKING
 from typing import Protocol
 
-from celery import shared_task
-
 from tp_backend_test.studies.models import NctSearchTask
 from tp_backend_test.studies.models import UploadTask
 
@@ -17,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class UploadTaskModelManagerProtocol(Protocol):
-    """Minimal subset of a Django model manager used by FileUploadTaskService.
+    """Minimal subset of a Django model manager.
 
     Allows for easy mocking during unit tests (without the DB).
     """
@@ -26,7 +24,7 @@ class UploadTaskModelManagerProtocol(Protocol):
 
 
 class NctSearchTaskModelManagerProtocol(Protocol):
-    """Minimal subset of a Django model manager used by FileUploadTaskService.
+    """Minimal subset of a Django model manager.
 
     Allows for easy mocking during unit tests (without the DB).
     """
@@ -34,21 +32,26 @@ class NctSearchTaskModelManagerProtocol(Protocol):
     def bulk_create(self, objs: Iterable[NctSearchTask]) -> list[NctSearchTask]: ...
 
 
-class ProcessFileUploadService:
-    @staticmethod
-    def factory():
-        return ProcessFileUploadService(
-            upload_task_model_manager=UploadTask.objects,
-            nct_search_task_model_manager=NctSearchTask.objects,
-        )
+class ProcessNctSearchJobProtocol(Protocol):
+    """Schedules the async job that processes an upload task.
 
+    Implementations should enqueue work (e.g. via Celery) rather than
+    executing it inline. You can run sync or mocked implementations for testing.
+    """
+
+    def schedule(self, nct_id: str) -> AsyncResult | None: ...
+
+
+class ProcessFileUploadService:
     def __init__(
         self,
         upload_task_model_manager: UploadTaskModelManagerProtocol,
         nct_search_task_model_manager: NctSearchTaskModelManagerProtocol,
+        nct_search_job: ProcessNctSearchJobProtocol,
     ):
         self.upload_task_model_manager = upload_task_model_manager
         self.nct_search_task_model_manager = nct_search_task_model_manager
+        self.nct_search_job = nct_search_job
 
     def process_file_upload(self, file_upload_id: uuid.UUID):
         """Parse csv and generate NctSearchTasks for each NCT ID."""
@@ -56,9 +59,9 @@ class ProcessFileUploadService:
         with upload_task.source_file.open(mode="rb") as f:
             # It apparently needs TextIOWrapper to work
             reader = csv.DictReader(io.TextIOWrapper(f, encoding="utf-8"))
-            insert_ids, _job_ids = itertools.tee(
+            insert_ids, job_ids = itertools.tee(
                 reader,
-            )  # Will add once get that service done.
+            )
             # This is already validated so we can assume that it is a single row csv
             self.nct_search_task_model_manager.bulk_create(
                 [
@@ -67,15 +70,9 @@ class ProcessFileUploadService:
                     if row
                 ],
             )
-
-
-class CeleryProcessFileUploadService:
-    @staticmethod
-    @shared_task
-    def celery_task(file_upload_id: uuid.UUID):
-        ProcessFileUploadService.factory().process_file_upload(
-            file_upload_id=file_upload_id,
-        )
-
-    def schedule(self, upload_id: uuid.UUID) -> AsyncResult | None:
-        return self.celery_task.apply_async(args=[upload_id])  # pyright: ignore[reportFunctionMemberAccess]
+            # Maybe a more elegant way to do this without teeing the iterator
+            # but not thinking too hard right now
+            for row in job_ids:
+                self.nct_search_job.schedule(row["NCT Number"])
+        upload_task.status = UploadTask.Status.PROCESSING
+        upload_task.save(update_fields=["status"])

@@ -2,6 +2,7 @@
 """Base settings to build other settings files upon."""
 
 import ssl
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -307,6 +308,7 @@ CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#worker-hijack-root-logger
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
+
 # django-allauth
 # ------------------------------------------------------------------------------
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
@@ -356,5 +358,14 @@ SPECTACULAR_SETTINGS = {
 # ------------------------------------------------------------------------------
 CTGOV_API_BASE_URL = env(
     "CTGOV_API_BASE_URL",
-    default="http://54.246.206.17",
+    default="http://54.246.206.17",  # pyright: ignore[reportArgumentType]
 )
+
+
+CELERY_BEAT_SCHEDULE = {
+    # Example 1: Run every 30 seconds using an interval
+    "update_file_upload_status": {
+        "task": "tp_backend_test.studies.tasks.orchestrator_celery_task",
+        "schedule": timedelta(minutes=5),
+    },
+}

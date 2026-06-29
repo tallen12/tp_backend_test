@@ -68,9 +68,14 @@ class NctSearchTask(TimestampedModel):
     class Status(models.TextChoices):
         NEW = "new"
         PROCESSING = "processing"
+        NOT_FOUND = "not found"
+        FAILURE = "failure"
         DONE = "done"
 
-    nct_id = models.CharField(max_length=11, unique=True, db_index=True)
+    nct_id = models.CharField(
+        max_length=11,
+        db_index=True,
+    )  # Does not need to be unique since this is per upload
     upload_task = models.ForeignKey(UploadTask, on_delete=models.CASCADE)
     study = models.ForeignKey(
         Study,
