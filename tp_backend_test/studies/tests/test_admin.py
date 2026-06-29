@@ -38,3 +38,25 @@ def test_upload_task_admin_accepts_csv_upload(admin_client):
     assert response.status_code == HTTPStatus.FOUND, form_errors
     upload_task = UploadTask.objects.get()
     assert upload_task.source_file.name.startswith("study_uploads/")
+
+
+def test_upload_task_admin_returns_existing_task_on_duplicate(admin_client):
+    url = reverse("admin:studies_uploadtask_add")
+    csv_content = b"NCT Number\nNCT00000001\n"
+
+    first_file = SimpleUploadedFile("nct_ids.csv", csv_content, content_type="text/csv")
+    admin_client.post(url, data={"source_file": first_file})
+    assert UploadTask.objects.count() == 1
+    original_task = UploadTask.objects.get()
+
+    second_file = SimpleUploadedFile(
+        "nct_ids.csv",
+        csv_content,
+        content_type="text/csv",
+    )
+    response = admin_client.post(url, data={"source_file": second_file})
+
+    # Still redirects — not an error, just returns the existing task
+    assert response.status_code == HTTPStatus.FOUND
+    assert UploadTask.objects.count() == 1
+    assert UploadTask.objects.get().pk == original_task.pk
