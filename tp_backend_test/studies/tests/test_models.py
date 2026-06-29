@@ -25,6 +25,8 @@ EXPECTED_UPLOAD_TASK_FIELDS = {
     "created_at",
     "updated_at",
     "source_file",
+    "file_hash",
+    "status",
 }
 
 
