@@ -34,10 +34,10 @@ class NctSearchTaskModelManagerProtocol(Protocol):
     def bulk_create(self, objs: Iterable[NctSearchTask]) -> list[NctSearchTask]: ...
 
 
-class ProcessFileUploadJobService:
+class ProcessFileUploadService:
     @staticmethod
     def factory():
-        return ProcessFileUploadJobService(
+        return ProcessFileUploadService(
             upload_task_model_manager=UploadTask.objects,
             nct_search_task_model_manager=NctSearchTask.objects,
         )
@@ -54,6 +54,7 @@ class ProcessFileUploadJobService:
         """Parse csv and generate NctSearchTasks for each NCT ID."""
         upload_task = self.upload_task_model_manager.get(pk=file_upload_id)
         with upload_task.source_file.open(mode="rb") as f:
+            # It apparently needs TextIOWrapper to work
             reader = csv.DictReader(io.TextIOWrapper(f, encoding="utf-8"))
             insert_ids, _job_ids = itertools.tee(
                 reader,
@@ -68,11 +69,11 @@ class ProcessFileUploadJobService:
             )
 
 
-class CeleryProcessFileUploadJobService:
+class CeleryProcessFileUploadService:
     @staticmethod
     @shared_task
     def celery_task(file_upload_id: uuid.UUID):
-        ProcessFileUploadJobService.factory().process_file_upload(
+        ProcessFileUploadService.factory().process_file_upload(
             file_upload_id=file_upload_id,
         )
 

@@ -8,7 +8,7 @@ from tp_backend_test.studies.models import UploadTask
 from tp_backend_test.studies.services.csv_validator import NctIdCsvValidatorService
 from tp_backend_test.studies.services.file_hasher import FileHasherService
 from tp_backend_test.studies.services.process_file_upload import (
-    CeleryProcessFileUploadJobService,
+    CeleryProcessFileUploadService,
 )
 
 if TYPE_CHECKING:
@@ -103,7 +103,7 @@ class FileUploadTaskService:
         """
         return FileUploadTaskService(
             csv_validator=NctIdCsvValidatorService(),
-            process_file_upload_job=CeleryProcessFileUploadJobService(),
+            process_file_upload_job=CeleryProcessFileUploadService(),
             file_hasher=FileHasherService(),
             model_manager=UploadTask.objects,
             on_commit=transaction.on_commit,

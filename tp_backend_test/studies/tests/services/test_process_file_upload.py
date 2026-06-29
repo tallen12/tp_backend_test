@@ -3,7 +3,7 @@ import pytest
 from tp_backend_test.studies.models import NctSearchTask
 from tp_backend_test.studies.models import UploadTask
 from tp_backend_test.studies.services.process_file_upload import (
-    ProcessFileUploadJobService,
+    ProcessFileUploadService,
 )
 from tp_backend_test.studies.tests.helpers import make_uploaded_file
 
@@ -20,7 +20,7 @@ def test_process_file_upload(settings):
         ),
         file_hash="whatever",  # Hash doesn't matter for this test
     )
-    ProcessFileUploadJobService(
+    ProcessFileUploadService(
         upload_task_model_manager=UploadTask.objects,
         nct_search_task_model_manager=NctSearchTask.objects,
     ).process_file_upload(file_upload_id=task.id)  # pyright: ignore[reportAttributeAccessIssue] Need to type correctly
@@ -38,7 +38,7 @@ def test_process_file_upload_task(settings):
         file_hash="whatever",  # Hash doesn't matter for this test
     )
     settings.CELERY_TASK_ALWAYS_EAGER = True
-    ProcessFileUploadJobService(
+    ProcessFileUploadService(
         upload_task_model_manager=UploadTask.objects,
         nct_search_task_model_manager=NctSearchTask.objects,
     ).process_file_upload(file_upload_id=task.id)  # pyright: ignore[reportAttributeAccessIssue] Need to type correctly
