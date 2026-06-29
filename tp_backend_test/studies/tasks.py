@@ -37,13 +37,13 @@ class CeleryUpdateFileUploadOrchestratorService:
 
 
 @shared_task
-def update_celery_task(file_upload_id: uuid.UUID):
+def update_file_upload_status_celery_task(file_upload_id: uuid.UUID):
     UpdateFileUploadStatusService(UploadTask.objects).update_status(file_upload_id)
 
 
 class CeleryUpdateFileUploadStatusService:
     def schedule(self, file_upload_id: uuid.UUID):
-        return update_celery_task.delay(file_upload_id)  # pyright: ignore[reportFunctionMemberAccess]
+        return update_file_upload_status_celery_task.delay(file_upload_id)  # pyright: ignore[reportFunctionMemberAccess]
 
 
 # Defining this as a static method on the class had issues

@@ -1,10 +1,13 @@
 from django.contrib import admin
 from django.contrib import messages
 
+from tp_backend_test.studies.models import NctSearchTask
 from tp_backend_test.studies.models import Study
 from tp_backend_test.studies.models import UploadTask
 from tp_backend_test.studies.services.file_upload import FileUploadTaskService
 from tp_backend_test.studies.services.file_upload import InvalidCsvError
+from tp_backend_test.studies.tasks import CeleryProcessFileUploadService
+from tp_backend_test.studies.tasks import CeleryUpdateFileUploadStatusService
 
 
 @admin.register(Study)
@@ -33,6 +36,7 @@ class UploadTaskAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ["created_at", "updated_at", "file_hash", "status"]
     exclude = ["status", "file_hash"]
+    actions = ["process_file_upload_action", "update_file_upload_status_action"]
 
     def __init__(self, model, admin_site):
         super().__init__(model, admin_site)
@@ -75,3 +79,65 @@ class UploadTaskAdmin(admin.ModelAdmin):
             extra_tags=extra_tags,
             fail_silently=fail_silently,
         )
+
+    @admin.action(description="Process file upload (schedule Celery task)")
+    def process_file_upload_action(self, request, queryset):
+
+        service = CeleryProcessFileUploadService()
+        scheduled = 0
+
+        for upload_task in queryset:
+            service.schedule(upload_task.pk)
+
+        if scheduled:
+            self.message_user(
+                request,
+                f"Scheduled file upload processing for {scheduled} task(s).",
+                level=messages.SUCCESS,
+            )
+
+    @admin.action(description="Update file upload status (schedule Celery task)")
+    def update_file_upload_status_action(self, request, queryset):
+        service = CeleryUpdateFileUploadStatusService()
+        scheduled = 0
+        for upload_task in queryset:
+            service.schedule(upload_task.pk)
+            scheduled += 1
+
+        self.message_user(
+            request,
+            f"Scheduled status update for {scheduled} task(s).",
+            level=messages.SUCCESS,
+        )
+
+
+@admin.register(NctSearchTask)
+class NctSearchTaskAdmin(admin.ModelAdmin):
+    list_display = [
+        "nct_id",
+        "upload_task",
+        "study",
+        "status",
+        "created_at",
+        "updated_at",
+        "upload_task__id",
+    ]
+    search_fields = ["nct_id", "upload_task__id"]
+    list_filter = ["status", "upload_task"]
+    readonly_fields = [
+        "nct_id",
+        "upload_task",
+        "study",
+        "status",
+        "created_at",
+        "updated_at",
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

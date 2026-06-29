@@ -10,6 +10,7 @@ from tp_backend_test.studies.models import UploadTask
 if TYPE_CHECKING:
     import uuid
     from collections.abc import Iterable
+    from collections.abc import Sequence
 
     from celery.result import AsyncResult
 
@@ -29,7 +30,15 @@ class NctSearchTaskModelManagerProtocol(Protocol):
     Allows for easy mocking during unit tests (without the DB).
     """
 
-    def bulk_create(self, objs: Iterable[NctSearchTask]) -> list[NctSearchTask]: ...
+    def bulk_create(  # noqa: PLR0913
+        self,
+        objs: Iterable[NctSearchTask],
+        batch_size: int | None = ...,
+        ignore_conflicts: bool = ...,  # noqa: FBT001
+        update_conflicts: bool | None = ...,  # noqa: FBT001
+        update_fields: Sequence[str] | None = ...,
+        unique_fields: Sequence[str] | None = ...,
+    ) -> list[NctSearchTask]: ...
 
 
 class ProcessNctSearchJobProtocol(Protocol):
@@ -69,6 +78,7 @@ class ProcessFileUploadService:
                     for row in insert_ids
                     if row
                 ],
+                ignore_conflicts=True,
             )
             # Maybe a more elegant way to do this without teeing the iterator
             # but not thinking too hard right now

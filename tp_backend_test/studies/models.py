@@ -21,9 +21,9 @@ class Study(TimestampedModel):
     nct_id = models.CharField(max_length=11, unique=True, db_index=True)
     brief_title = models.TextField(blank=True)
     official_title = models.TextField(blank=True)
-    overall_status = models.CharField(max_length=64, blank=True)
+    overall_status = models.CharField(max_length=64, blank=True, db_index=True)
     conditions = models.JSONField(default=list, blank=True)
-    study_type = models.CharField(max_length=64, blank=True)
+    study_type = models.CharField(max_length=64, blank=True, db_index=True)
     brief_summary = models.TextField(blank=True)
     sponsor_primary_key = models.CharField(max_length=255, blank=True)
 
@@ -92,6 +92,7 @@ class NctSearchTask(TimestampedModel):
 
     class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         ordering = ["-created_at"]
+        unique_together = [("nct_id", "upload_task")]
 
     def __str__(self) -> str:
         return f"Upload task {self.pk} for {self.nct_id}"
